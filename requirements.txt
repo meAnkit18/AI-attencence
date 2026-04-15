@@ -1,0 +1,11 @@
+# Smart Attendance System — Dependencies
+# Install: pip install -r requirements.txt
+
+face_recognition>=1.3.0     # FaceNet-style 128-D embeddings (dlib ResNet-34 backend)
+opencv-python>=4.8.0        # Camera capture, frame processing, display
+numpy>=1.24.0               # Embedding distance math
+dlib>=19.24.0               # Required by face_recognition (deep CNN)
+cmake>=3.25.0               # Needed to build dlib from source on some platforms
+flask>=3.0.0                # Web framework for API
+flask-cors>=4.0.0           # Cross-Origin Resource Sharing for frontend
+Pillow>=10.0.0              # Image processing for base64 decoding
