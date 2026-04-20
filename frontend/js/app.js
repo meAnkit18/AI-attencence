@@ -5,11 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const router = new Router();
 
     router
-        .on('/', () => pages.dashboard())
+        .on('/', () => pages.guard())
         .on('/register', () => pages.register())
-        .on('/attendance', () => pages.attendance())
         .on('/people', () => pages.people())
-        .on('/phishing', () => pages.phishing());
+        .on('/phishing', () => pages.phishing())
+        .on('/guard', () => pages.guard());
 
     router.start();
 });

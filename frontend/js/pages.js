@@ -1,5 +1,5 @@
 /**
- * Page Renderers — Dashboard, Register, Attendance, People
+ * Page Renderers — Guard, Register, People, Phishing
  */
 
 // ─── Utility ────────────────────────────────────────────────────────────────
@@ -27,124 +27,6 @@ function showToast(message, type = 'info') {
 function getInitials(name) {
     return name.split(/[\s_]+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
-
-// ─── DASHBOARD PAGE ─────────────────────────────────────────────────────────
-
-function renderDashboard() {
-    const content = document.getElementById('page-content');
-    content.innerHTML = `
-        <div class="page-header">
-            <h1>Dashboard</h1>
-            <p>Overview of your attendance system</p>
-        </div>
-
-        <div class="stats-grid" id="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Registered People</div>
-                    <div class="stat-value" id="stat-people">—</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Today's Attendance</div>
-                    <div class="stat-value" id="stat-today">—</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Total Records</div>
-                    <div class="stat-value" id="stat-total">—</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Face Encodings</div>
-                    <div class="stat-value" id="stat-encodings">—</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="section-header">
-                <h2>Today's Attendance</h2>
-                <span class="badge badge-success" id="today-date">${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-            </div>
-            <div id="today-table-content">
-                <div class="loading-container">
-                    <div class="spinner"></div>
-                    <p>Loading attendance data...</p>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // Load stats
-    api.getStats().then(data => {
-        document.getElementById('stat-people').textContent = data.total_people;
-        document.getElementById('stat-today').textContent = data.today_attendance;
-        document.getElementById('stat-total').textContent = data.total_attendance;
-        document.getElementById('stat-encodings').textContent = data.total_encodings;
-    }).catch(() => {
-        showToast('Failed to load statistics', 'error');
-    });
-
-    // Load today's attendance
-    api.getAttendance().then(data => {
-        const container = document.getElementById('today-table-content');
-        if (data.records.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    <h3>No attendance yet today</h3>
-                    <p>Go to the Attendance page to start recognizing faces and logging attendance.</p>
-                </div>
-            `;
-        } else {
-            container.innerHTML = `
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr><th>#</th><th>Name</th><th>Time</th><th>Status</th></tr>
-                        </thead>
-                        <tbody>
-                            ${data.records.map((r, i) => `
-                                <tr>
-                                    <td>${i + 1}</td>
-                                    <td><strong>${r.name.replace(/_/g, ' ')}</strong></td>
-                                    <td>${r.time}</td>
-                                    <td><span class="badge badge-success">Present</span></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-    }).catch(() => {
-        document.getElementById('today-table-content').innerHTML = `
-            <div class="empty-state">
-                <h3>Could not load attendance</h3>
-                <p>Make sure the backend server is running on port 5000.</p>
-            </div>
-        `;
-    });
-
-    return {};
-}
-
 
 // ─── REGISTER PAGE ──────────────────────────────────────────────────────────
 
@@ -612,6 +494,269 @@ function renderPeople() {
 }
 
 
+// ─── SCREEN GUARD PAGE ──────────────────────────────────────────────────────
+
+function renderGuard() {
+    const content = document.getElementById('page-content');
+    let stream = null;
+    let guardInterval = null;
+    let isGuarding = false;
+    let lastKnownFace = null;
+
+    content.innerHTML = `
+        <div class="page-header">
+            <h1>ScamAI Guard</h1>
+            <p>Automatically locks screen when unknown person is detected</p>
+        </div>
+
+        <div class="card" style="max-width:600px;margin:0 auto;">
+            <div style="text-align:center;padding:24px 0;">
+                <div style="font-size:4rem;margin-bottom:16px;">🛡️</div>
+                <h2 style="margin-bottom:8px;">Privacy Screen Protection</h2>
+                <p style="color:var(--text-secondary);margin-bottom:24px;">
+                    When enabled, the screen will automatically black out if an unknown person is detected by the camera.
+                </p>
+
+                <div id="guard-status-display" style="display:flex;justify-content:center;margin-bottom:16px;">
+                    <div class="guard-status unauthorized">
+                        <span class="guard-dot"></span>
+                        <span>INACTIVE</span>
+                    </div>
+                </div>
+
+                <div id="guard-live-wrapper" style="display:none;margin-bottom:20px;position:relative;">
+                    <canvas id="guard-overlay-canvas"
+                        style="width:100%;max-width:400px;border-radius:12px;border:2px solid var(--border);background:#000;display:block;"></canvas>
+                    <span style="position:absolute;top:8px;left:8px;background:rgba(220,38,38,0.85);color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:1px;">● LIVE</span>
+                </div>
+
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <button class="btn btn-primary" id="btn-start-guard">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                        Start Guard
+                    </button>
+                    <button class="btn btn-danger" id="btn-stop-guard" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="6" y="6" width="12" height="12" rx="2"/>
+                        </svg>
+                        Stop Guard
+                    </button>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid var(--border);padding:20px;background:var(--bg-elevated);">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                    <strong>How it works</strong>
+                </div>
+                <ul style="color:var(--text-secondary);font-size:0.85rem;line-height:1.6;margin:0;padding-left:32px;">
+                    <li>Camera runs silently in the background</li>
+                    <li>Scans for faces every 2 seconds</li>
+                    <li>If a registered person is detected → screen stays normal</li>
+                    <li>If unknown person or no face → screen blacks out instantly</li>
+                    <li>Click anywhere on the black screen to manually unlock</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="guard-log-card" class="card" style="max-width:600px;margin:24px auto 0;">
+            <div class="section-header">
+                <h2>Activity Log</h2>
+                <button class="btn btn-sm btn-secondary" id="btn-clear-log">Clear</button>
+            </div>
+            <div id="guard-log">
+                <div class="empty-state" style="padding:20px;">
+                    <p>No activity yet.</p>
+                </div>
+            </div>
+        </div>
+
+        <video id="guard-video" autoplay playsinline muted style="position:absolute;visibility:hidden;width:1px;height:1px;"></video>
+        <canvas id="guard-canvas" style="display:none;"></canvas>
+    `;
+
+    const video = document.getElementById('guard-video');
+    const canvas = document.getElementById('guard-canvas');
+    const overlayCanvas = document.getElementById('guard-overlay-canvas');
+    const overlayCtx = overlayCanvas.getContext('2d');
+    const blackout = document.getElementById('screen-blackout');
+    const log = [];
+    let lastFaces = [];
+    let rafId = null;
+
+    function drawOverlay() {
+        if (!isGuarding) return;
+        overlayCanvas.width = video.videoWidth || 640;
+        overlayCanvas.height = video.videoHeight || 480;
+        overlayCtx.drawImage(video, 0, 0, overlayCanvas.width, overlayCanvas.height);
+
+        lastFaces.forEach(f => {
+            const { top, right, bottom, left } = f.location;
+            const isKnown = f.name !== 'Unknown';
+            overlayCtx.strokeStyle = isKnown ? '#22c55e' : '#ef4444';
+            overlayCtx.lineWidth = 2;
+            overlayCtx.strokeRect(left, top, right - left, bottom - top);
+
+            const label = f.name.replace(/_/g, ' ');
+            overlayCtx.font = 'bold 13px sans-serif';
+            const tw = overlayCtx.measureText(label).width;
+            overlayCtx.fillStyle = isKnown ? '#22c55e' : '#ef4444';
+            overlayCtx.fillRect(left, top - 20, tw + 8, 20);
+            overlayCtx.fillStyle = '#fff';
+            overlayCtx.fillText(label, left + 4, top - 5);
+        });
+
+        rafId = requestAnimationFrame(drawOverlay);
+    }
+
+    function updateStatus(authorized, name = null) {
+        const display = document.getElementById('guard-status-display');
+        if (authorized) {
+            display.innerHTML = `
+                <div class="guard-status authorized">
+                    <span class="guard-dot"></span>
+                    <span>AUTHORIZED${name ? ` — ${name}` : ''}</span>
+                </div>
+            `;
+            blackout.classList.remove('active');
+        } else {
+            display.innerHTML = `
+                <div class="guard-status unauthorized">
+                    <span class="guard-dot"></span>
+                    <span>UNAUTHORIZED</span>
+                </div>
+            `;
+            blackout.classList.add('active');
+        }
+    }
+
+    function addLog(type, message) {
+        const now = new Date().toLocaleTimeString();
+        log.unshift({ type, message, time: now });
+        renderLog();
+    }
+
+    function renderLog() {
+        const container = document.getElementById('guard-log');
+        if (log.length === 0) {
+            container.innerHTML = `<div class="empty-state" style="padding:20px;"><p>No activity yet.</p></div>`;
+            return;
+        }
+        container.innerHTML = log.slice(0, 20).map(l => `
+            <div class="recognition-result">
+                <span class="badge ${l.type === 'authorized' ? 'badge-success' : 'badge-danger'}">${l.type}</span>
+                <span style="flex:1;font-size:0.85rem;">${l.message}</span>
+                <span style="font-size:0.75rem;color:var(--text-secondary);">${l.time}</span>
+            </div>
+        `).join('');
+    }
+
+    // Manual unlock on blackout click
+    blackout.addEventListener('click', () => {
+        blackout.classList.remove('active');
+        addLog('manual', 'Screen manually unlocked');
+        showToast('Screen unlocked manually', 'info');
+    });
+
+    // Start Guard
+    document.getElementById('btn-start-guard').addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } });
+            video.srcObject = stream;
+            await new Promise(r => video.onloadedmetadata = r);
+            await video.play();
+            document.getElementById('guard-live-wrapper').style.display = 'block';
+            isGuarding = true;
+            drawOverlay();
+
+            document.getElementById('btn-start-guard').disabled = true;
+            document.getElementById('btn-stop-guard').disabled = false;
+
+            addLog('system', 'ScamAI Guard activated');
+            showToast('ScamAI Guard started', 'success');
+
+            // Scan every 2 seconds
+            guardInterval = setInterval(async () => {
+                if (!isGuarding) return;
+
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+                try {
+                    const result = await api.recognize(dataUrl);
+                    lastFaces = result.faces;
+                    const knownFaces = result.faces.filter(f => f.name !== 'Unknown');
+
+                    if (knownFaces.length > 0) {
+                        const name = knownFaces[0].name.replace(/_/g, ' ');
+                        if (lastKnownFace !== name) {
+                            addLog('authorized', `${name} detected`);
+                            lastKnownFace = name;
+                        }
+                        updateStatus(true, name);
+                    } else {
+                        if (lastKnownFace !== null) {
+                            addLog('unauthorized', 'Unknown person detected — screen locked');
+                            lastKnownFace = null;
+                        }
+                        updateStatus(false);
+                    }
+                } catch (e) {
+                    // Silently retry
+                }
+            }, 2000);
+
+        } catch (e) {
+            showToast('Camera access denied: ' + e.message, 'error');
+        }
+    });
+
+    // Stop Guard
+    document.getElementById('btn-stop-guard').addEventListener('click', () => {
+        isGuarding = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        if (guardInterval) clearInterval(guardInterval);
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        document.getElementById('guard-live-wrapper').style.display = 'none';
+        blackout.classList.remove('active');
+        document.getElementById('btn-start-guard').disabled = false;
+        document.getElementById('btn-stop-guard').disabled = true;
+        updateStatus(false);
+        document.getElementById('guard-status-display').innerHTML = `
+            <div class="guard-status unauthorized">
+                <span class="guard-dot"></span>
+                <span>INACTIVE</span>
+            </div>
+        `;
+        addLog('system', 'ScamAI Guard deactivated');
+        showToast('ScamAI Guard stopped', 'info');
+    });
+
+    document.getElementById('btn-clear-log').addEventListener('click', () => {
+        log.length = 0;
+        renderLog();
+    });
+
+    return {
+        destroy() {
+            isGuarding = false;
+            if (rafId) cancelAnimationFrame(rafId);
+            if (guardInterval) clearInterval(guardInterval);
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            blackout.classList.remove('active');
+        }
+    };
+}
+
+
 // ─── PHISHING DETECTOR PAGE ─────────────────────────────────────────────────
 
 function renderPhishing() {
@@ -733,9 +878,9 @@ function renderPhishing() {
 
 // Make renderers available globally
 window.pages = {
-    dashboard: renderDashboard,
     register: renderRegister,
     attendance: renderAttendance,
     people: renderPeople,
     phishing: renderPhishing,
+    guard: renderGuard,
 };

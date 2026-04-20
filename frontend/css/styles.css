@@ -905,3 +905,60 @@ tr:hover td { background: rgba(212, 168, 83, 0.02); }
 @media (max-width: 480px) {
     .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* ─── Screen Guard ──────────────────────────────────────── */
+#screen-blackout {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    cursor: pointer;
+}
+
+#screen-blackout.active { display: flex; }
+
+#screen-blackout svg { color: #333; }
+
+#screen-blackout p {
+    color: #222;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.guard-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.guard-status.authorized {
+    background: rgba(92, 201, 138, 0.15);
+    color: var(--green);
+    border: 1px solid rgba(92, 201, 138, 0.2);
+}
+
+.guard-status.unauthorized {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.guard-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 1.5s infinite;
+}
